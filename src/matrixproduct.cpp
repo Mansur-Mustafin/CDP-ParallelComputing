@@ -10,18 +10,15 @@ using namespace std;
 
 #define SYSTEMTIME clock_t
 
- 
+
 double OnMult(int m_ar, int m_br) 
 {
-	
 	SYSTEMTIME Time1, Time2;
 	
 	double temp, time;
 	int i, j, k;
 
 	double *pha, *phb, *phc;
-	
-
 		
     pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
@@ -31,13 +28,9 @@ double OnMult(int m_ar, int m_br)
 		for(j=0; j<m_ar; j++)
 			pha[i*m_ar + j] = (double)1.0;
 
-
-
 	for(i=0; i<m_br; i++)
 		for(j=0; j<m_br; j++)
 			phb[i*m_br + j] = (double)(i+1);
-
-
 
     Time1 = clock();
 
@@ -51,7 +44,6 @@ double OnMult(int m_ar, int m_br)
 			phc[i*m_ar+j]=temp;
 		}
 	}
-
 
     Time2 = clock();
 
@@ -71,13 +63,129 @@ double OnMult(int m_ar, int m_br)
 	return time;
 }
 
-// TODO add code here for line x line matriz multiplication
-double OnMultLine(int m_ar, int m_br){}
+double OnMultLine(int m_ar, int m_br)
+{
+	SYSTEMTIME Time1, Time2;
+	
+	double time;
+	int i, j, k;
 
-// TODO add code here for block x block matriz multiplication
-double OnMultBlock(int m_ar, int m_br, int bkSize){}
+	double *pha, *phb, *phc;
+		
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));	// use calloc?
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			phc[i*m_ar + j] = (double)0.0;
+
+    Time1 = clock();
+
+	for(i=0; i<m_ar; i++)
+	{	for( k=0; k<m_ar; k++)
+		{   for( j=0; j<m_br; j++)
+			{	
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+		}
+	}
+
+    Time2 = clock();
+
+	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+
+	// display 10 elements of the result matrix tto verify correctness
+	cout << "Result matrix: " << endl;
+	for(i=0; i<1; i++)
+	{	for(j=0; j<min(10,m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+	return time;
+}
+
+double OnMultBlock(int m_ar, int m_br, int bkSize)
+{
+	SYSTEMTIME Time1, Time2;
+	
+	double time;
+	int i, j, k;
+	int iBlock, kBlock, jBlock;
+
+	double *pha, *phb, *phc;
+		
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));	// use calloc?
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			phc[i*m_ar + j] = (double)0.0;
 
 
+    Time1 = clock();
+
+	for(iBlock=0; iBlock<m_ar; iBlock+=bkSize)
+	{	for( kBlock=0; kBlock<m_ar; kBlock+=bkSize)
+		{   for( jBlock=0; jBlock<m_br; jBlock+=bkSize)
+			{	
+				int iEndBlock = iBlock + bkSize;
+				int jEndBlock = jBlock + bkSize;
+				int kEndBlock = kBlock + bkSize;
+
+				for(i=iBlock;i<iEndBlock;i++)
+				{	for(k=kBlock;k<kEndBlock;k++)
+					{	for(j=jBlock;j<jEndBlock;j++)
+						{
+							phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_ar+j];
+						}
+					}
+				}
+
+				
+			}
+		}
+	}
+
+    Time2 = clock();
+
+	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
+
+	// display 10 elements of the result matrix tto verify correctness
+	cout << "Result matrix: " << endl;
+	for(i=0; i<1; i++)
+	{	for(j=0; j<min(10,m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+
+    free(pha);
+    free(phb);
+    free(phc);
+	cout << time << endl;
+	return time;
+}
 
 void handle_error (int retval)
 {
@@ -98,21 +206,19 @@ void init_papi() {
             << " REVISION: " << PAPI_VERSION_REVISION(retval) << "\n";
 }
 
-
 int main (int argc, char *argv[])
 {
 	
 	if (argc < 4) {
-        printf("Usage: %s <operation> <dimention> <result_file> <block_size>\n", argv[0]);
+        printf("Usage: %s <operation> <dimention> <result_file> [block_size]\n", argv[0]);
         exit(-1);
     }
 
-	// char c;
 	double time;
 	int lin = atoi(argv[2]);
 	int col = lin; 
-	int blockSize = argc == 5 ? atoi(argv[4]) : 0;
 	int op = atoi(argv[1]);
+	int blockSize = (argc == 5 && op == 3) ? atoi(argv[4]) : 0;
 	ofstream resultFile; 
 	resultFile.open(argv[3], ios::out | ios::app);;
 
