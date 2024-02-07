@@ -3,9 +3,9 @@
 ### Running C++ Tests
 
 * To run all the required C++ tests: `make run`
-* To run the standard matrix multiplication test: `run_mult_standard`
-* To run the line-by-line matrix multiplication test: `run_mult_line`
-* To run the block matrix multiplication test: `run_mult_block`
+* To run the standard matrix multiplication test: `make run_mult_standard`
+* To run the line-by-line matrix multiplication test: `make run_mult_line`
+* To run the block matrix multiplication test: `make run_mult_block`
 
 ### Running Java Tests
 
