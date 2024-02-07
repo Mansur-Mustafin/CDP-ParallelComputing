@@ -1,8 +1,19 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class MatrixProduct {
+
+    public static void printMatrix(double[] mat, int n){
+        System.out.println("Result matrix:");
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < Math.min(10, n); j++) {
+                System.out.print(mat[j] + " ");
+            }
+            System.out.println();
+        }
+    }
 
     public static double OnMult(int m_ar, int m_br){
         long Time1, Time2;
@@ -39,13 +50,7 @@ public class MatrixProduct {
 
         time = (Time2 - Time1) / 1.0e9;
 
-        System.out.println("Result matrix:");
-        for ( i = 0; i < 1; i++) {
-            for ( j = 0; j < Math.min(10, m_br); j++) {
-                System.out.print(phc[j] + " ");
-            }
-            System.out.println();
-        }
+        printMatrix(phc, m_br);
         
         return time;
     }
@@ -68,9 +73,7 @@ public class MatrixProduct {
             for(j=0; j<m_br; j++)
                 phb[i*m_br + j] = (double)(i+1);
 
-        for(i=0; i<m_ar; i++)
-            for(j=0; j<m_ar; j++)
-                phc[i*m_ar + j] = (double)0.0;
+        Arrays.fill(phc, 0.0);
         
         Time1 = System.nanoTime(); 
 
@@ -87,13 +90,7 @@ public class MatrixProduct {
 
         time = (Time2 - Time1) / 1.0e9;
 
-        System.out.println("Result matrix:");
-        for ( i = 0; i < 1; i++) {
-            for ( j = 0; j < Math.min(10, m_br); j++) {
-                System.out.print(phc[j] + " ");
-            }
-            System.out.println();
-        }
+        printMatrix(phc, m_br);
         
         return time;
     }
@@ -117,9 +114,7 @@ public class MatrixProduct {
             for(j=0; j<m_br; j++)
                 phb[i*m_br + j] = (double)(i+1);
 
-        for(i=0; i<m_ar; i++)
-            for(j=0; j<m_ar; j++)
-                phc[i*m_ar + j] = (double)0.0;
+        Arrays.fill(phc, 0.0);
         
         Time1 = System.nanoTime(); 
 
@@ -149,19 +144,13 @@ public class MatrixProduct {
 
         time = (Time2 - Time1) / 1.0e9;
 
-        System.out.println("Result matrix:");
-        for ( i = 0; i < 1; i++) {
-            for ( j = 0; j < Math.min(10, m_br); j++) {
-                System.out.print(phc[j] + " ");
-            }
-            System.out.println();
-        }
+        printMatrix(phc, m_br);
         
         return time;
     }
 
     public static void main(String[] args) {
-        if (args.length < 3) {
+        if (args.length < 3 || args.length > 4) {
             System.out.println("Usage: java MatrixOperations <operation> <dimension> <result_file> [block_size]");
             System.exit(-1);
         }
@@ -176,17 +165,10 @@ public class MatrixProduct {
             BufferedWriter resultFile = new BufferedWriter(new FileWriter(args[2], true));
 
             switch (op) {
-                case 1:
-                    time = OnMult(lin, col);
-                    break;
-                case 2:
-                    time = OnMultLine(lin, col);
-                    break;
-                case 3:
-                    time = OnMultBlock(lin, col, blockSize);
-                    break;
-                default:
-                    break;
+                case 1: time = OnMult(lin, col); break;
+                case 2: time = OnMultLine(lin, col); break;
+                case 3: time = OnMultBlock(lin, col, blockSize); break;
+                default: break;
             }
 
             resultFile.write(op + "," + lin + "," + blockSize + "," + time + "\n");
