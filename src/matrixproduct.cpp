@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <time.h>
 #include <cstdlib>
@@ -10,13 +11,12 @@ using namespace std;
 #define SYSTEMTIME clock_t
 
  
-void OnMult(int m_ar, int m_br) 
+double OnMult(int m_ar, int m_br) 
 {
 	
 	SYSTEMTIME Time1, Time2;
 	
-	char st[100];
-	double temp;
+	double temp, time;
 	int i, j, k;
 
 	double *pha, *phb, *phc;
@@ -54,8 +54,8 @@ void OnMult(int m_ar, int m_br)
 
 
     Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+
+	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 
 	// display 10 elements of the result matrix tto verify correctness
 	cout << "Result matrix: " << endl;
@@ -68,23 +68,14 @@ void OnMult(int m_ar, int m_br)
     free(pha);
     free(phb);
     free(phc);
-	
-	
+	return time;
 }
 
-// add code here for line x line matriz multiplication
-void OnMultLine(int m_ar, int m_br)
-{
-    
-    
-}
+// TODO add code here for line x line matriz multiplication
+double OnMultLine(int m_ar, int m_br){}
 
-// add code here for block x block matriz multiplication
-void OnMultBlock(int m_ar, int m_br, int bkSize)
-{
-    
-    
-}
+// TODO add code here for block x block matriz multiplication
+double OnMultBlock(int m_ar, int m_br, int bkSize){}
 
 
 
@@ -110,10 +101,26 @@ void init_papi() {
 
 int main (int argc, char *argv[])
 {
+	
+	if (argc < 4) {
+        printf("Usage: %s <operation> <dimention> <result_file> <block_size>\n", argv[0]);
+        exit(-1);
+    }
 
-	char c;
-	int lin, col, blockSize;
-	int op;
+	// char c;
+	double time;
+	int lin = atoi(argv[2]);
+	int col = lin; 
+	int blockSize = argc == 5 ? atoi(argv[4]) : 0;
+	int op = atoi(argv[1]);
+	ofstream resultFile; 
+	resultFile.open(argv[3], ios::out | ios::app);;
+
+	if (resultFile.is_open()) {
+        resultFile << op << "," << lin << "," << blockSize << ",";
+    } else {
+        std::cout << "[FAIL] Unable to open file" << argv[3] << std::endl;
+    }
 	
 	int EventSet = PAPI_NULL;
   	long long values[2];
@@ -137,51 +144,36 @@ int main (int argc, char *argv[])
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
 
-	op=1;
-	do {
-		cout << endl << "1. Multiplication" << endl;
-		cout << "2. Line Multiplication" << endl;
-		cout << "3. Block Multiplication" << endl;
-		cout << "Selection?: ";
-		cin >>op;
-		if (op == 0)
+	// Start counting
+	ret = PAPI_start(EventSet);
+	if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+	switch (op){
+		case 1: 
+			time = OnMult(lin, col);
 			break;
-		printf("Dimensions: lins=cols ? ");
-   		cin >> lin;
-   		col = lin;
+		case 2:
+			time = OnMultLine(lin, col);  
+			break;
+		case 3:
+			time = OnMultBlock(lin, col, blockSize);  
+			break;
+		default:
+			break;
+	}
+
+	// stop counting
+	ret = PAPI_stop(EventSet, values);
+	if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+	resultFile << time << "," << values[0] << "," << values[1] << "\n";
 
 
-		// Start counting
-		ret = PAPI_start(EventSet);
-		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+	ret = PAPI_reset( EventSet );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL reset" << endl; 
 
-		switch (op){
-			case 1: 
-				OnMult(lin, col);
-				break;
-			case 2:
-				OnMultLine(lin, col);  
-				break;
-			case 3:
-				cout << "Block Size? ";
-				cin >> blockSize;
-				OnMultBlock(lin, col, blockSize);  
-				break;
+	resultFile.close();
 
-		}
-
-  		ret = PAPI_stop(EventSet, values);
-  		if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-  		printf("L1 DCM: %lld \n",values[0]);
-  		printf("L2 DCM: %lld \n",values[1]);
-
-		ret = PAPI_reset( EventSet );
-		if ( ret != PAPI_OK )
-			std::cout << "FAIL reset" << endl; 
-
-
-
-	}while (op != 0);
 
 	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
 	if ( ret != PAPI_OK )
