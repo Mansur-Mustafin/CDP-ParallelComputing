@@ -10,6 +10,15 @@ using namespace std;
 
 #define SYSTEMTIME clock_t
 
+void printMatrix(double * mat, int n){
+	// display 10 elements of the result matrix tto verify correctness
+	cout << "Result matrix: " << endl;
+	for(int i = 0; i < 1; i++)
+		for(int j = 0; j < min(10, n); j++)
+			cout << mat[j] << " ";
+	
+	cout << endl;
+}
 
 double OnMult(int m_ar, int m_br) 
 {
@@ -49,13 +58,7 @@ double OnMult(int m_ar, int m_br)
 
 	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 
-	// display 10 elements of the result matrix tto verify correctness
-	cout << "Result matrix: " << endl;
-	for(i=0; i<1; i++)
-	{	for(j=0; j<min(10,m_br); j++)
-			cout << phc[j] << " ";
-	}
-	cout << endl;
+	printMatrix(phc, m_br);
 
     free(pha);
     free(phb);
@@ -103,13 +106,7 @@ double OnMultLine(int m_ar, int m_br)
 
 	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 
-	// display 10 elements of the result matrix tto verify correctness
-	cout << "Result matrix: " << endl;
-	for(i=0; i<1; i++)
-	{	for(j=0; j<min(10,m_br); j++)
-			cout << phc[j] << " ";
-	}
-	cout << endl;
+	printMatrix(phc, m_br);
 
     free(pha);
     free(phb);
@@ -163,7 +160,6 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 					}
 				}
 
-				
 			}
 		}
 	}
@@ -172,32 +168,24 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 
 	time = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 
-	// display 10 elements of the result matrix tto verify correctness
-	cout << "Result matrix: " << endl;
-	for(i=0; i<1; i++)
-	{	for(j=0; j<min(10,m_br); j++)
-			cout << phc[j] << " ";
-	}
-	cout << endl;
+	printMatrix(phc, m_br);
 
     free(pha);
     free(phb);
     free(phc);
-	cout << time << endl;
 	return time;
 }
 
-void handle_error (int retval)
-{
+void handle_error (int retval){
   printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void init_papi() {
   int retval = PAPI_library_init(PAPI_VER_CURRENT);
   if (retval != PAPI_VER_CURRENT && retval < 0) {
     printf("PAPI library version mismatch!\n");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   if (retval < 0) handle_error(retval);
 
@@ -208,89 +196,54 @@ void init_papi() {
 
 int main (int argc, char *argv[])
 {
-	
-	if (argc < 4) {
+	if (argc < 4 || argc > 5) {
         printf("Usage: %s <operation> <dimention> <result_file> [block_size]\n", argv[0]);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
+	int op = std::atoi(argv[1]);
+	int lin = std::atoi(argv[2]);
+	int col = lin;
+	int blockSize = (argc == 5 && op == 3) ? std::atoi(argv[4]) : 0;
 	double time;
-	int lin = atoi(argv[2]);
-	int col = lin; 
-	int op = atoi(argv[1]);
-	int blockSize = (argc == 5 && op == 3) ? atoi(argv[4]) : 0;
-	ofstream resultFile; 
-	resultFile.open(argv[3], ios::out | ios::app);;
 
-	if (resultFile.is_open()) {
-        resultFile << op << "," << lin << "," << blockSize << ",";
-    } else {
-        std::cout << "[FAIL] Unable to open file" << argv[3] << std::endl;
-    }
+	std::ofstream resultFile(argv[3], std::ios::out | std::ios::app);
+	if (!resultFile.is_open()) {
+        printf("[FAIL] Unable to open file %s\n", argv[3]);
+		return EXIT_FAILURE;
+    } 
 	
 	int EventSet = PAPI_NULL;
   	long long values[2];
-  	int ret;
 	
-
-	ret = PAPI_library_init( PAPI_VER_CURRENT );
-	if ( ret != PAPI_VER_CURRENT )
-		std::cout << "FAIL" << endl;
-
-
-	ret = PAPI_create_eventset(&EventSet);
-		if (ret != PAPI_OK) cout << "ERROR: create eventset" << endl;
+	if ( PAPI_library_init( PAPI_VER_CURRENT ) != PAPI_VER_CURRENT ) std::cout << "FAIL" << endl;
+	if ( PAPI_create_eventset(&EventSet) != PAPI_OK) cout << "ERROR: create eventset" << endl;
+	if ( PAPI_add_event(EventSet,PAPI_L1_DCM ) != PAPI_OK) cout << "ERROR: PAPI_L1_DCM" << endl;
+	if ( PAPI_add_event(EventSet,PAPI_L2_DCM) != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
 
-	ret = PAPI_add_event(EventSet,PAPI_L1_DCM );
-	if (ret != PAPI_OK) cout << "ERROR: PAPI_L1_DCM" << endl;
-
-
-	ret = PAPI_add_event(EventSet,PAPI_L2_DCM);
-	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
-
-
-	// Start counting
-	ret = PAPI_start(EventSet);
-	if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
-
+	if ( PAPI_start(EventSet) != PAPI_OK) cout << "ERROR: Start PAPI" << endl;		// Start counting
 	switch (op){
-		case 1: 
-			time = OnMult(lin, col);
-			break;
-		case 2:
-			time = OnMultLine(lin, col);  
-			break;
-		case 3:
-			time = OnMultBlock(lin, col, blockSize);  
-			break;
-		default:
-			break;
+		case 1: time = OnMult(lin, col); break;
+		case 2: time = OnMultLine(lin, col); break;
+		case 3: time = OnMultBlock(lin, col, blockSize); break;
+		default: printf("[ERROR] Invalid operation code: %d\n", op); return EXIT_FAILURE;
 	}
+	if ( PAPI_stop(EventSet, values) != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;	// stop counting
+	if ( PAPI_reset( EventSet ) != PAPI_OK ) std::cout << "FAIL reset" << endl; 
 
-	// stop counting
-	ret = PAPI_stop(EventSet, values);
-	if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-	resultFile << time << "," << values[0] << "," << values[1] << "\n";
-
-
-	ret = PAPI_reset( EventSet );
-	if ( ret != PAPI_OK )
-		std::cout << "FAIL reset" << endl; 
-
+	resultFile 	<< op << "," 
+	       		<< lin << "," 
+				<< blockSize << "," 
+				<< time << "," 
+				<< values[0] << "," 
+				<< values[1] << "\n";
 	resultFile.close();
 
+	
+	if ( PAPI_remove_event( EventSet, PAPI_L1_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
+	if ( PAPI_remove_event( EventSet, PAPI_L2_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
+	if ( PAPI_destroy_eventset( &EventSet ) != PAPI_OK ) std::cout << "FAIL destroy" << endl;
 
-	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
-	if ( ret != PAPI_OK )
-		std::cout << "FAIL remove event" << endl; 
-
-	ret = PAPI_remove_event( EventSet, PAPI_L2_DCM );
-	if ( ret != PAPI_OK )
-		std::cout << "FAIL remove event" << endl; 
-
-	ret = PAPI_destroy_eventset( &EventSet );
-	if ( ret != PAPI_OK )
-		std::cout << "FAIL destroy" << endl;
-
+	return EXIT_SUCCESS;
 }
