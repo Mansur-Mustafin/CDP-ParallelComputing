@@ -77,7 +77,7 @@ double OnMultLine(int m_ar, int m_br)
 		
     pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));	// use calloc?
+	phc = (double *)calloc(m_ar * m_ar, sizeof(double));	// use calloc?
 
 	for(i=0; i<m_ar; i++)
 		for(j=0; j<m_ar; j++)
@@ -86,10 +86,6 @@ double OnMultLine(int m_ar, int m_br)
 	for(i=0; i<m_br; i++)
 		for(j=0; j<m_br; j++)
 			phb[i*m_br + j] = (double)(i+1);
-
-	for(i=0; i<m_ar; i++)
-		for(j=0; j<m_ar; j++)
-			phc[i*m_ar + j] = (double)0.0;
 
     Time1 = clock();
 
@@ -123,10 +119,10 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 	int iBlock, kBlock, jBlock;
 
 	double *pha, *phb, *phc;
-		
+	
     pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));	// use calloc?
+	phc = (double *)calloc(m_ar * m_ar, sizeof(double));
 
 	for(i=0; i<m_ar; i++)
 		for(j=0; j<m_ar; j++)
@@ -135,10 +131,6 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 	for(i=0; i<m_br; i++)
 		for(j=0; j<m_br; j++)
 			phb[i*m_br + j] = (double)(i+1);
-
-	for(i=0; i<m_ar; i++)
-		for(j=0; j<m_ar; j++)
-			phc[i*m_ar + j] = (double)0.0;
 
 
     Time1 = clock();
