@@ -17,4 +17,3 @@ for dim in `seq 600 400 3000`; do
     java -cp $BIN_DIR $MAIN_CLASS 2 $dim $OUTPUT 
 done
 
-#TODO task 3?

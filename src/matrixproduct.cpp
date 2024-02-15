@@ -5,6 +5,7 @@
 #include <time.h>
 #include <cstdlib>
 #include <papi.h>
+#include <math.h>
 
 using namespace std;
 
@@ -197,7 +198,7 @@ int main (int argc, char *argv[])
 	int lin = std::atoi(argv[2]);
 	int col = lin;
 	int blockSize = (argc == 5 && op == 3) ? std::atoi(argv[4]) : 0;
-	double time;
+	double time, gflops;
 
 	std::ofstream resultFile(argv[3], std::ios::out | std::ios::app);
 	if (!resultFile.is_open()) {
@@ -224,15 +225,16 @@ int main (int argc, char *argv[])
 	if ( PAPI_stop(EventSet, values) != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;	// stop counting
 	if ( PAPI_reset( EventSet ) != PAPI_OK ) std::cout << "FAIL reset" << endl; 
 
+	gflops = (2 * pow(lin, 3) / time) / 1e9;
 	resultFile 	<< op << "," 
 	       		<< lin << "," 
 				<< blockSize << "," 
 				<< time << "," 
 				<< values[0] << "," 
-				<< values[1] << "\n";
+				<< values[1] << ","
+				<< fixed << setprecision(4) << gflops << "\n";
 	resultFile.close();
 
-	
 	if ( PAPI_remove_event( EventSet, PAPI_L1_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
 	if ( PAPI_remove_event( EventSet, PAPI_L2_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
 	if ( PAPI_destroy_eventset( &EventSet ) != PAPI_OK ) std::cout << "FAIL destroy" << endl;

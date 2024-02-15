@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.lang.Math;
 
 public class MatrixProduct {
 
@@ -160,7 +161,7 @@ public class MatrixProduct {
             int lin = Integer.parseInt(args[1]);
             int col = lin;
             int blockSize = (args.length == 4 && op == 3) ? Integer.parseInt(args[3]) : 0;
-            double time = 0;
+            double time = 0, gflops = 0;
 
             BufferedWriter resultFile = new BufferedWriter(new FileWriter(args[2], true));
 
@@ -170,8 +171,9 @@ public class MatrixProduct {
                 case 3: time = OnMultBlock(lin, col, blockSize); break;
                 default: break;
             }
-
-            resultFile.write(op + "," + lin + "," + blockSize + "," + time + "\n");
+            
+            gflops = (2 * Math.pow(lin, 3) / time) / 1e9;
+            resultFile.write(op + "," + lin + "," + blockSize + "," + time + "," + gflops + "\n");
             resultFile.close();
         } catch (NumberFormatException e) {
             System.out.println("Error parsing integer arguments");
