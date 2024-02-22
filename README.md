@@ -18,7 +18,7 @@ You can find all results in csv format in `output/` folder.
 * `results_cpp.csv` C++ results
 * `results_java.csv` Java results
 
-
+```
 Available PAPI preset and user defined events plus hardware information.
 --------------------------------------------------------------------------------
 PAPI version             : 7.1.0.0
@@ -106,3 +106,4 @@ PAPI_VEC_DP  0x8000006a  Yes  Double precision vector/SIMD instructions
 PAPI_REF_CYC 0x8000006b  No   Reference clock cycles
 --------------------------------------------------------------------------------
 Of 59 available events, 18 are derived.
+```
