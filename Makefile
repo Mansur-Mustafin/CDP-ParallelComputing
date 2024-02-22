@@ -7,7 +7,7 @@ LIBS = -lpapi
 
 SRC = src/
 BIN = bin/
-OUTPUT = output/results_cpp.csv
+OUTPUT = output/22_02/results_cpp.csv
 
 
 # Targets

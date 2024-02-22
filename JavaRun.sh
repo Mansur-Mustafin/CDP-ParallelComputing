@@ -1,7 +1,7 @@
 SRC_DIR="src"
 BIN_DIR="bin"
 MAIN_CLASS="MatrixProduct"
-OUTPUT="output/results_java.csv"
+OUTPUT="output/22_02/results_java.csv"
 
 # Clean and compile
 rm -f $BIN_DIR/*.class
