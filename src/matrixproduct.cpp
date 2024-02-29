@@ -6,6 +6,12 @@
 #include <cstdlib>
 #include <papi.h>
 #include <math.h>
+#include <chrono>
+
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
+
 
 using namespace std;
 
@@ -169,6 +175,95 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 	return time;
 }
 
+double OnMultLineV1(int m_ar, int m_br, int n_threads)
+{
+	double time;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+	
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)calloc(m_ar * m_ar, sizeof(double));
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+    auto Time1 = chrono::high_resolution_clock::now();
+
+	#pragma omp parallel for num_threads(n_threads) private(k, j)
+	for(i=0; i<m_ar; i++)
+	{	for( k=0; k<m_ar; k++)
+		{   for( j=0; j<m_br; j++)
+			{	
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+		}
+	}
+	
+    auto Time2 = chrono::high_resolution_clock::now();
+
+	time = chrono::duration_cast<chrono::microseconds>(Time2 - Time1).count() / 1e6;
+
+	printMatrix(phc, m_br);
+
+    free(pha);
+    free(phb);
+    free(phc);
+	return time;
+}
+
+double OnMultLineV2(int m_ar, int m_br, int n_threads)
+{
+	
+	double time;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+	
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)calloc(m_ar * m_ar, sizeof(double));
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+    auto Time1 = chrono::high_resolution_clock::now();
+	
+	#pragma omp parallel num_threads(n_threads) private(i, k)
+	for(i=0; i<m_ar; i++)
+	{	for( k=0; k<m_ar; k++)
+		{   
+			#pragma omp for
+			for( j=0; j<m_br; j++)
+			{	
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+			}
+		}
+	}
+
+    auto Time2 = chrono::high_resolution_clock::now();
+
+	time = chrono::duration_cast<chrono::microseconds>(Time2 - Time1).count() / 1e6;
+
+	printMatrix(phc, m_br);
+
+    free(pha);
+    free(phb);
+    free(phc);
+	return time;
+}
+
 void handle_error (int retval){
   printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
   exit(EXIT_FAILURE);
@@ -190,7 +285,7 @@ void init_papi() {
 int main (int argc, char *argv[])
 {
 	if (argc < 4 || argc > 5) {
-        printf("Usage: %s <operation> <dimention> <result_file> [block_size]\n", argv[0]);
+        printf("Usage: %s <operation> <dimention> <result_file> [block_size] [n_threads]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -199,6 +294,7 @@ int main (int argc, char *argv[])
 	int col = lin;
 	int blockSize = (argc == 5 && op == 3) ? std::atoi(argv[4]) : 0;
 	double time, gflops;
+	int n_threads = (argc == 5 && (op == 4 || op == 5)) ? std::atoi(argv[4]) : 1;
 
 	std::ofstream resultFile(argv[3], std::ios::out | std::ios::app);
 	if (!resultFile.is_open()) {
@@ -220,6 +316,8 @@ int main (int argc, char *argv[])
 		case 1: time = OnMult(lin, col); break;
 		case 2: time = OnMultLine(lin, col); break;
 		case 3: time = OnMultBlock(lin, col, blockSize); break;
+		case 4: time = OnMultLineV1(lin, col, n_threads); break;
+		case 5: time = OnMultLineV2(lin, col, n_threads); break;
 		default: printf("[ERROR] Invalid operation code: %d\n", op); return EXIT_FAILURE;
 	}
 	if ( PAPI_stop(EventSet, values) != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;	// stop counting
@@ -232,7 +330,8 @@ int main (int argc, char *argv[])
 				<< time << "," 
 				<< values[0] << "," 
 				<< values[1] << ","
-				<< fixed << setprecision(4) << gflops << "\n";
+				<< fixed << setprecision(4) << gflops << ","
+				<< n_threads << "\n";
 	resultFile.close();
 
 	if ( PAPI_remove_event( EventSet, PAPI_L1_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
