@@ -2,7 +2,7 @@
 
 # Parameters
 CC = g++
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -fopenmp
 LIBS = -lpapi
 
 SRC = functions/
