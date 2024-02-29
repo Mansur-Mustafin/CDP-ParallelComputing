@@ -7,7 +7,8 @@ LIBS = -lpapi
 
 SRC = functions/
 BIN = bin/
-OUTPUT = output/22_02/results_cpp.csv
+# You need check the path
+OUTPUT = output/30_02/results_cpp_test.csv
 
 
 # Targets
@@ -17,12 +18,14 @@ all: $(BIN)/matrix
 $(BIN)/matrix: $(SRC)/*.cpp
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
+# Part 1 Task 1
 .PHONY: run_mult_standard
 run_mult_standard: $(BIN)/matrix
 	@for size in `seq 600 400 3000`; do \
 		./$(BIN)/matrix 1 $$size $(OUTPUT); \
 	done
 
+# Part 1 Task 2
 .PHONY: run_mult_line
 run_mult_line: $(BIN)/matrix
 	@for size in `seq 600 400 3000`; do \
@@ -32,6 +35,7 @@ run_mult_line: $(BIN)/matrix
 		./$(BIN)/matrix 2 $$size $(OUTPUT); \
 	done
 
+# Part 1 Task 3
 .PHONY: run_mult_block
 run_mult_block: $(BIN)/matrix
 	@for size in `seq 4096 2048 10240`; do \
@@ -40,8 +44,37 @@ run_mult_block: $(BIN)/matrix
 		done \
 	done
 
+# Part 2 Task 1
+.PHONY: run_mult_line_parallel_v1
+run_mult_line_parallel_v1: $(BIN)/matrix
+	@for size in `seq 600 400 3000`; do \
+		for n_threads in 4 6 8; do \
+			./$(BIN)/matrix 4 $$size $(OUTPUT) $$n_threads; \
+		done \
+	done 
+	@for size in `seq 4096 2048 10240`; do \
+		for n_threads in 4 6 8; do \
+			./$(BIN)/matrix 4 $$size $(OUTPUT) $$n_threads; \
+		done \
+	done
+
+# Part 2 Task 2
+.PHONY: run_mult_line_parallel_v2
+run_mult_line_parallel_v2: $(BIN)/matrix
+	@for size in `seq 600 400 3000`; do \
+		for n_threads in 4 6 8; do \
+			./$(BIN)/matrix 5 $$size $(OUTPUT) $$n_threads; \
+		done \
+	done 
+	@for size in `seq 4096 2048 10240`; do \
+		for n_threads in 4 6 8; do \
+			./$(BIN)/matrix 5 $$size $(OUTPUT) $$n_threads; \
+		done \
+	done
+
+
 .PHONY: run
-run: run_mult_standard run_mult_line run_mult_block
+run: run_mult_standard run_mult_line run_mult_block run_mult_line_parallel_v1 run_mult_line_parallel_v2
 
 .PHONY: clean
 clean:
