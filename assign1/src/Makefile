@@ -2,13 +2,13 @@
 
 # Parameters
 CC = g++
-CFLAGS = -Wall -O2 -fopenmp
-LIBS = -lpapi
+CFLAGS = -Wall -O2 
+LIBS = -lpapi -fopenmp
 
 SRC = functions/
 BIN = bin/
 # You need check the path
-OUTPUT = output/30_02/results_cpp_test.csv
+OUTPUT = output/30_02/results_cpp.csv
 
 
 # Targets
