@@ -5,7 +5,7 @@ CC = g++
 CFLAGS = -Wall -O2 
 LIBS = -lpapi -fopenmp
 
-SRC = functions/
+SRC = src/
 BIN = bin/
 # You need check the path
 OUTPUT = output/30_02/results_cpp.csv
