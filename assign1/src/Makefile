@@ -2,8 +2,8 @@
 
 # Parameters
 CC = g++
-CFLAGS = -Wall -O2 -fopenmp
-LIBS = -lpapi
+CFLAGS = -Wall -O2 
+LIBS = -lpapi -fopenmp
 
 SRC = functions/
 BIN = bin/
