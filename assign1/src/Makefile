@@ -8,7 +8,7 @@ LIBS = -lpapi
 SRC = functions/
 BIN = bin/
 # You need check the path
-OUTPUT = output/30_02/results_cpp_test.csv
+OUTPUT = output/07_03/results_cpp_test2.csv
 
 
 # Targets
@@ -72,9 +72,18 @@ run_mult_line_parallel_v2: $(BIN)/matrix
 		done \
 	done
 
+# Part 2 Experimental block algorithm parallel
+.PHONY: run_mult_block_parallel
+run_mult_block_parallel: $(BIN)/matrix
+	@for size in `seq 4096 2048 10240`; do \
+		for n_threads in 4 6 8; do \
+			./$(BIN)/matrix 6 $$size $(OUTPUT) 256 $$n_threads; \
+		done \
+	done
+
 
 .PHONY: run
-run: run_mult_standard run_mult_line run_mult_block run_mult_line_parallel_v1 run_mult_line_parallel_v2
+run: run_mult_standard run_mult_line run_mult_block run_mult_line_parallel_v1 run_mult_line_parallel_v2 run_mult_block_parallel
 
 .PHONY: clean
 clean:
