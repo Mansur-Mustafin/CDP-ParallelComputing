@@ -3,7 +3,7 @@ import pandas as pd
 
 OUTPUT_PATH = "output/"
 
-def get_all_files(output_path):
+def get_all_files(output_path, lang = 'cpp'):
     """
     Traverse through a given directory and its subdirectories to find all CSV files
     that contain 'cpp' in their filenames.
@@ -11,18 +11,13 @@ def get_all_files(output_path):
     paths = []
     for root, dirs, files in os.walk(output_path):
         for file in files:
-            if file.endswith('.csv') and 'cpp' in file:
+            if file.endswith('.csv') and lang in file:
                 file_path = os.path.join(root, file)
                 print(f"Found: {file_path}")
                 paths.append(file_path)
     return paths
 
-
-def calc_mean(files):
-    """
-    Calculate the mean values for each unique combination ['Operation', 'Dimension', 'BlockSize', 'N_Threads'] 
-    in a collection of CSV files.
-    """
+def get_merged_DF(files):
     all_data = []
     for file_path in files:
         try:
@@ -33,10 +28,18 @@ def calc_mean(files):
 
     if not all_data:
         return pd.DataFrame()
+        
+    return all_data
+
+def calc_mean(files):
+    """
+    Calculate the mean values for each unique combination ['Operation', 'Dimension', 'BlockSize', 'N_Threads'] 
+    in a collection of CSV files.
+    """
+    all_data = get_merged_DF(files)
 
     combined_data = pd.concat(all_data)
     mean_data = combined_data.groupby(['Operation', 'Dimension', 'BlockSize', 'N_Threads']).mean().reset_index()
-    
     
     mean_data['Time'] = mean_data['Time'].round(6)
     mean_data['Gflops'] = mean_data['Gflops'].round(4)
@@ -45,6 +48,20 @@ def calc_mean(files):
 
     return mean_data
 
+def calc_mean_java(files):
+    """
+    Calculate the mean values for each unique combination ['Operation', 'Dimension', 'BlockSize'] 
+    in a collection of CSV files.
+    """
+    all_data = get_merged_DF(files)
+
+    combined_data = pd.concat(all_data)
+    mean_data = combined_data.groupby(['Operation', 'Dimension', 'BlockSize']).mean().reset_index()
+    
+    mean_data['Time'] = mean_data['Time'].round(6)
+    mean_data['Gflops'] = mean_data['Gflops'].round(4)
+
+    return mean_data
 
 def save_in_new_csv(file_name, df):
     """
@@ -55,6 +72,10 @@ def save_in_new_csv(file_name, df):
 
 
 if __name__ == "__main__":
-    files = get_all_files(OUTPUT_PATH)
-    results = calc_mean(files)
-    save_in_new_csv("aggregated_results.csv", results)
+    # files = get_all_files(OUTPUT_PATH)
+    # results = calc_mean(files)
+    # save_in_new_csv("aggregated_results.csv", results)
+
+    files = get_all_files(OUTPUT_PATH, 'java')
+    results = calc_mean_java(files)
+    save_in_new_csv("aggregated_results_java.csv", results)
