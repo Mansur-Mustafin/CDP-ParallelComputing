@@ -45,6 +45,7 @@ def calc_mean(files):
     mean_data['Gflops'] = mean_data['Gflops'].round(4)
     mean_data['L1_DCM'] = mean_data['L1_DCM'].astype(int)
     mean_data['L2_DCM'] = mean_data['L2_DCM'].astype(int)
+    mean_data['N_Threads'] = mean_data['N_Threads'].astype(int)
 
     return mean_data
 
@@ -72,10 +73,10 @@ def save_in_new_csv(file_name, df):
 
 
 if __name__ == "__main__":
-    # files = get_all_files(OUTPUT_PATH)
-    # results = calc_mean(files)
-    # save_in_new_csv("aggregated_results.csv", results)
+    files = get_all_files(OUTPUT_PATH)
+    results = calc_mean(files)
+    save_in_new_csv("aggregated_results_cpp.csv", results)
 
-    files = get_all_files(OUTPUT_PATH, 'java')
-    results = calc_mean_java(files)
-    save_in_new_csv("aggregated_results_java.csv", results)
+    # files = get_all_files(OUTPUT_PATH, 'java')
+    # results = calc_mean_java(files)
+    # save_in_new_csv("aggregated_results_java.csv", results)
