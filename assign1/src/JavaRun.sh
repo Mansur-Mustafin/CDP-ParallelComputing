@@ -1,4 +1,4 @@
-SRC_DIR="src"
+SRC_DIR="functions"
 BIN_DIR="bin"
 MAIN_CLASS="MatrixProduct"
 OUTPUT="output/22_02/results_java.csv"
