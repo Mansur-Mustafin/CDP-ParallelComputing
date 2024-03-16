@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import sys
 
 OUTPUT_PATH = "output/"
 
@@ -94,10 +95,18 @@ def save_in_new_csv(file_name, df):
 
 
 if __name__ == "__main__":
-    files = get_all_files(OUTPUT_PATH)
-    results = calc_mean_cpp(files)
-    save_in_new_csv("aggregated_results_cpp.csv", results)
+    if len(sys.argv) < 2:
+        print("Usage: python script.py <cpp, java>")
+        sys.exit(1)
+    language = sys.argv[1].lower()
 
-    # files = get_all_files(OUTPUT_PATH, 'java')
-    # results = calc_mean_java(files)
-    # save_in_new_csv("aggregated_results_java.csv", results)
+
+    files = get_all_files(OUTPUT_PATH, language)
+    if language == 'cpp':
+        results = calc_mean_cpp(files)
+    elif language == 'java':
+        results = calc_mean_java(files)
+    else:
+        print(f"Unsupported language: {language}")
+
+    save_in_new_csv(f"aggregated_results_{language}.csv", results)
