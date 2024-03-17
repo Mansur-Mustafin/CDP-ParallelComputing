@@ -362,11 +362,13 @@ int main (int argc, char *argv[])
 	
 	int EventSet = PAPI_NULL;
   	long long values[2];
+	// long long values[3]; case of L3_TCM
 	
 	if ( PAPI_library_init( PAPI_VER_CURRENT ) != PAPI_VER_CURRENT ) std::cout << "FAIL" << endl;
 	if ( PAPI_create_eventset(&EventSet) != PAPI_OK) cout << "ERROR: create eventset" << endl;
 	if ( PAPI_add_event(EventSet,PAPI_L1_DCM ) != PAPI_OK) cout << "ERROR: PAPI_L1_DCM" << endl;
 	if ( PAPI_add_event(EventSet,PAPI_L2_DCM) != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
+	// if ( PAPI_add_event(EventSet,PAPI_L3_TCM) != PAPI_OK) cout << "ERROR: PAPI_L3_TCM" << endl;
 
 
 	if ( PAPI_start(EventSet) != PAPI_OK) cout << "ERROR: Start PAPI" << endl;		// Start counting
@@ -389,12 +391,14 @@ int main (int argc, char *argv[])
 				<< time << "," 
 				<< values[0] << "," 
 				<< values[1] << ","
+				// << values[2] << ","
 				<< fixed << setprecision(4) << gflops << ","
 				<< n_threads << "\n";
 	resultFile.close();
 
 	if ( PAPI_remove_event( EventSet, PAPI_L1_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
 	if ( PAPI_remove_event( EventSet, PAPI_L2_DCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
+	// if ( PAPI_remove_event( EventSet, PAPI_L3_TCM ) != PAPI_OK ) std::cout << "FAIL remove event" << endl; 
 	if ( PAPI_destroy_eventset( &EventSet ) != PAPI_OK ) std::cout << "FAIL destroy" << endl;
 
 	return EXIT_SUCCESS;
