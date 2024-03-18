@@ -1,11 +1,14 @@
 ## How to run
 
 ### Running C++ Tests
-
+* Clean up command: `make clean`
 * To run all the required C++ tests: `make run`
 * To run the standard matrix multiplication test: `make run_mult_standard`
 * To run the line-by-line matrix multiplication test: `make run_mult_line`
 * To run the block matrix multiplication test: `make run_mult_block`
+* To run the line-by-line matrix multiplication test with parallelization (Version 1): `make run_mult_line_parallel_v1`
+* To run the line-by-line matrix multiplication test with parallelization (Version 2): `make run_mult_line_parallel_v2`
+* To run the block algorithm with parallelization: `make run_mult_block_parallel`
 
 ### Running Java Tests
 
@@ -15,8 +18,13 @@
 ## Results
 
 You can find all results in csv format in `output/` folder.
-* `results_cpp.csv` C++ results
-* `results_java.csv` Java results
+* `aggregated_results_cpp.csv` C++ results
+* `aggregated_results_java.csv` Java results
+
+
+To run the script 
+* for Java version: `python3 analyse.py java`
+* for C++ version: `python3 analyse.py cpp`
 
 ```
 Available PAPI preset and user defined events plus hardware information.
